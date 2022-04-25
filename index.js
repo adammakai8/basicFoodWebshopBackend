@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 const app = express();
 
 const port = process.env.PORT || 3001;
@@ -8,7 +9,7 @@ const session = require('express-session');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 
-const dbUrl = 'mongodb+srv://admin:' + process.env.DB_PASS + '@cluster0.xo8r8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
+const dbUrl = 'mongodb+srv://admin:AQeW4pVrmPWxk2Nx@cluster0.xo8r8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
 mongoose.connect(dbUrl);
 
 mongoose.connection.on('connected', () => { console.log('Database connected') });
@@ -62,6 +63,11 @@ passport.deserializeUser(function (user, done) {
 app.use(session({ secret: 'fwkuEVefw43refFUV3Ucwbuozg32zufwevsuzfw3b', resave: false }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(express.static(path.join(__dirname, 'public')))
+.set('views', path.join(__dirname, 'views'))
+.set('view engine', 'ejs')
+.get('/', (request, response) => response.render('pages/index'));
 
 app.use('/', require('./routes'));
 
