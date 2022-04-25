@@ -8,7 +8,7 @@ const session = require('express-session');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 
-const dbUrl = 'mongodb+srv://admin:WKswhAdsyqbIcSaX@cluster0.xo8r8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
+const dbUrl = 'mongodb+srv://admin:' + process.env.DB_PASS + '@cluster0.xo8r8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
 mongoose.connect(dbUrl);
 
 mongoose.connection.on('connected', () => { console.log('Database connected') });
