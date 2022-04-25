@@ -1,0 +1,27 @@
+{
+  "name": "basicfoodwebshopbackend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adammakai8/basicFoodWebshopBackend.git"
+  },
+  "author": "Makai Ádám",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adammakai8/basicFoodWebshopBackend/issues"
+  },
+  "homepage": "https://github.com/adammakai8/basicFoodWebshopBackend#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "express": "^4.17.3",
+    "express-session": "^1.17.2",
+    "mongoose": "^6.3.1",
+    "passport": "^0.5.2",
+    "passport-local": "^1.0.0"
+  }
+}
