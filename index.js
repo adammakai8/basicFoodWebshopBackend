@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 
+const port = process.env.PORT || 3001;
+
 const session = require('express-session');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
@@ -63,6 +65,6 @@ app.use(passport.session());
 
 app.use('/', require('./routes'));
 
-app.listen(3001, () => {
+app.listen(port, () => {
     console.log('Server started');
 });
