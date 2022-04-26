@@ -66,8 +66,8 @@ router.route('/products').get((request, response) => {
     if (request.params.name) {
         filterParams.name = { $regex: '.*' + request.params.name + '.*' };
     }
-    if (request.params.category) {
-        filterParams.category = request.params.category;
+    if (request.params.categories) {
+        filterParams.category = { $all: request.params.category };
     }
     if (request.params.min_price || request.params.max_price) {
         filterParams.price = {};
