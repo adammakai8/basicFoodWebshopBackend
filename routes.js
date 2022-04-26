@@ -8,6 +8,7 @@ const orderModel = mongoose.model('Order');
 const passport = require('passport');
 
 router.route('/login').post((request, response, next) => {
+    console.log(request.body);
     if (!!request.body.email && request.body.password) {
         passport.authenticate('local', (error, user) => {
             if (error) {
@@ -17,11 +18,11 @@ router.route('/login').post((request, response, next) => {
                 if (loginError) {
                     return response.status(500).send(loginError);
                 }
-                return response.status(200).send('Login successful');
+                return response.status(200).send(user);
             });
         }) (request, response, next);
     } else {
-        return response.status(400).send('Bad request, missing email or password');
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Bad request, missing email or password'});
     }
 });
 
@@ -67,7 +68,8 @@ router.route('/products').get((request, response) => {
         filterParams.name = { $regex: '.*' + request.params.name + '.*' };
     }
     if (request.params.categories) {
-        filterParams.category = { $all: request.params.category };
+        const array = request.params.categories.split(',');
+        filterParams.category = { $all: array };
     }
     if (request.params.min_price || request.params.max_price) {
         filterParams.price = {};
@@ -79,7 +81,8 @@ router.route('/products').get((request, response) => {
         }
     }
     if (request.params.tags) {
-        filterParams.tags = { $all: request.params.tags };
+        const array = request.params.tags.split(',');
+        filterParams.tags = { $all: array };
     }
     productModel.find(filterParams, (error, products) => {
         if (error) {
