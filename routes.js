@@ -7,7 +7,7 @@ const orderModel = mongoose.model('Order');
 
 const passport = require('passport');
 
-router.route('/login').post((request, response, next) => {
+router.route('/api/login').post((request, response, next) => {
     console.log(request.body);
     if (!!request.body.email && request.body.password) {
         passport.authenticate('local', (error, user) => {
@@ -18,6 +18,9 @@ router.route('/login').post((request, response, next) => {
                 if (loginError) {
                     return response.status(500).send(loginError);
                 }
+                if (request.body.email === 'szaboz@inf.u-szeged.hu') {
+                    request.session.admin = true;
+                }
                 return response.status(200).send(user);
             });
         }) (request, response, next);
@@ -26,16 +29,17 @@ router.route('/login').post((request, response, next) => {
     }
 });
 
-router.route('/logout').post((request, response, next) => {
+router.route('/api/logout').post((request, response, next) => {
     if (request.isAuthenticated()) {
         request.logout();
+        request.session.admin = undefined;
         return response.status(200).send('Logout successful');
     } else {
         return response.status(403).send('No user was logged in');
     }
 });
 
-router.route('/register').put((request, response) => {
+router.route('/api/register').put((request, response) => {
     if (!request.body.name || !request.body.birthdate || !request.body.password || !request.body.email) {
         return response.status(400).send('Missing user data');
     } else {
@@ -62,7 +66,10 @@ router.route('/register').put((request, response) => {
     }
 });
 
-router.route('/products').get((request, response) => {
+router.route('/api/products').get((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
     const filterParams = {};
     if (request.params.name) {
         filterParams.name = { $regex: '.*' + request.params.name + '.*' };
@@ -90,9 +97,32 @@ router.route('/products').get((request, response) => {
         }
         return response.status(200).send(products);
     });
+}).put((request, response) => {
+    if (!request.body.name || !request.body.category || !request.body.price) {
+        return response.status(400).send('Bad request, missing required parameters!');
+    }
+    if (!request.isAuthenticated() || !request.session.admin) {
+        return response.status(403).send('Access denied');
+    }
+    const newProduct = new productModel({
+        name: request.body.name,
+        category: request.body.category,
+        description: request.body.description,
+        tags: request.body.tags,
+        price: request.body.price
+    });
+    newProduct.save(saveError => {
+        if (saveError) {
+            return response.status(500).send(saveError);
+        }
+        return response.status(200).send(newProduct);
+    });
 });
 
-router.route('/buy').post((request, response) => {
+router.route('/api/buy').post((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
     if (!request.body.item) {
         return response.status(400).send({error: 'BAD_REQUEST', detail: 'Missing item parameter'});
     }
@@ -103,14 +133,20 @@ router.route('/buy').post((request, response) => {
     return response.status(200).send(request.body.item);
 });
 
-router.route('/basket').get((request, response) => {
+router.route('/api/basket').get((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
     if (!request.session.basket) {
         request.session.basket = [];
     }
     return response.status(200).send(request.session.basket);
 });
 
-router.route('/order').post((request, response) => {
+router.route('/api/order').post((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
     if (!request.body.order) {
         return response.status(400).send({error: 'BAD_REQUEST', detail: 'Missing order parameter'});
     }
