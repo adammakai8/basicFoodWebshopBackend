@@ -9,7 +9,7 @@ const session = require('express-session');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 
-const dbUrl = DB_URL;
+const dbUrl = process.env.DB_URL;
 mongoose.connect(dbUrl);
 
 mongoose.connection.on('connected', () => { console.log('Database connected') });
