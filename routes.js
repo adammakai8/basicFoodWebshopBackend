@@ -18,7 +18,7 @@ router.route('/api/login').post((request, response, next) => {
                 if (loginError) {
                     return response.status(500).send(loginError);
                 }
-                if (request.body.email === 'szaboz@inf.u-szeged.hu') {
+                if (request.body.email === process.env.ADMIN_EMAIL) {
                     request.session.admin = true;
                 }
                 return response.status(200).send(user);
