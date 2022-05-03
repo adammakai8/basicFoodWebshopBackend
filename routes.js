@@ -7,7 +7,7 @@ const orderModel = mongoose.model('Order');
 
 const passport = require('passport');
 
-router.route('/api/login').post((request, response, next) => {
+router.route('/login').post((request, response, next) => {
     console.log(request.body);
     if (!!request.body.email && request.body.password) {
         passport.authenticate('local', (error, user) => {
@@ -29,17 +29,17 @@ router.route('/api/login').post((request, response, next) => {
     }
 });
 
-router.route('/api/logout').post((request, response, next) => {
+router.route('/logout').post((request, response, next) => {
     if (request.isAuthenticated()) {
         request.logout();
         request.session.admin = undefined;
-        return response.status(200).send('Logout successful');
+        return response.status(200).send({message: 'Logout successful'});
     } else {
-        return response.status(403).send('No user was logged in');
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'No user was logged in'});
     }
 });
 
-router.route('/api/register').put((request, response) => {
+router.route('/register').put((request, response) => {
     if (!request.body.name || !request.body.birthdate || !request.body.password || !request.body.email) {
         return response.status(400).send('Missing user data');
     } else {
@@ -66,7 +66,7 @@ router.route('/api/register').put((request, response) => {
     }
 });
 
-router.route('/api/products').get((request, response) => {
+router.route('/products').get((request, response) => {
     if (!request.isAuthenticated()) {
         return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
     }
@@ -119,7 +119,7 @@ router.route('/api/products').get((request, response) => {
     });
 });
 
-router.route('/api/buy').post((request, response) => {
+router.route('/buy').post((request, response) => {
     if (!request.isAuthenticated()) {
         return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
     }
@@ -133,7 +133,7 @@ router.route('/api/buy').post((request, response) => {
     return response.status(200).send(request.body.item);
 });
 
-router.route('/api/basket').get((request, response) => {
+router.route('/basket').get((request, response) => {
     if (!request.isAuthenticated()) {
         return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
     }
@@ -143,7 +143,7 @@ router.route('/api/basket').get((request, response) => {
     return response.status(200).send(request.session.basket);
 });
 
-router.route('/api/order').post((request, response) => {
+router.route('/order').post((request, response) => {
     if (!request.isAuthenticated()) {
         return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
     }

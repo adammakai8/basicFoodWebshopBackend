@@ -69,7 +69,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 .set('view engine', 'ejs')
 .get('/', (request, response) => response.render('pages/index'));
 
-app.use('/', require('./routes'));
+app.use('/api/', require('./routes'));
 
 app.listen(port, () => {
     console.log('Server started');
