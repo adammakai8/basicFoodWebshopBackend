@@ -41,14 +41,14 @@ router.route('/logout').post((request, response, next) => {
 
 router.route('/register').put((request, response) => {
     if (!request.body.name || !request.body.birthdate || !request.body.password || !request.body.email) {
-        return response.status(400).send('Missing user data');
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Missing user data'});
     } else {
         userModel.findOne({ email: request.body.email }, (error, user) => {
             if (error) {
-                return response.status(500).send('Database error' + error);
+                return response.status(500).send({error: 'INTERNAL_SERVER_ERROR', detail: error});
             }
             if (user) {
-                return response.status(400).send('Email already in use');
+                return response.status(400).send({error: 'BAD_REQUEST', detail: 'Email already in use'});
             }
             const newUser = new userModel({
                 name: request.body.name,
@@ -58,7 +58,7 @@ router.route('/register').put((request, response) => {
             });
             newUser.save(saveError => {
                 if (saveError) {
-                    return response.status(500).send('Database error: ' + saveError);
+                    return response.status(500).send({error: 'INTERNAL_SERVER_ERROR', detail: saveError});
                 }
                 return response.status(200).send(request.body);
              });
@@ -93,7 +93,7 @@ router.route('/products').get((request, response) => {
     }
     productModel.find(filterParams, (error, products) => {
         if (error) {
-            return response.status(500).send('Database error: ' + error);
+            return response.status(500).send({error: 'INTERNAL_SERVER_ERROR', detail: error});
         }
         return response.status(200).send(products);
     });
@@ -119,7 +119,7 @@ router.route('/products').get((request, response) => {
     });
 });
 
-router.route('/buy').post((request, response) => {
+router.route('/buy').put((request, response) => {
     if (!request.isAuthenticated()) {
         return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
     }
@@ -131,6 +131,32 @@ router.route('/buy').post((request, response) => {
     }
     request.session.basket.push(request.body.item);
     return response.status(200).send(request.body.item);
+}).post((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
+    if (!request.body.item) {
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Missing item parameter'});
+    }
+    if (!request.session.basket || request.session.basket.length === 0) {
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Basket is missing or empty'});
+    }
+    const index = request.session.basket.findIndex(item => item._id === request.body.item._id);
+    request.session.basket[index].amount = request.body.item.amount;
+    return response.status(200).send(request.session.basket);
+}).delete((request, response) => {
+    if (!request.isAuthenticated()) {
+        return response.status(403).send({error: 'FORBIDDEN', detail: 'Not authenticated'});
+    }
+    if (!request.body.item) {
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Missing item parameter'});
+    }
+    if (!request.session.basket || request.session.basket.length === 0) {
+        return response.status(400).send({error: 'BAD_REQUEST', detail: 'Basket is missing or empty'});
+    }
+    const index = request.session.basket.findIndex(item => item._id === request.body.item._id);
+    request.session.basket.splice(index, 1);
+    return response.status(200).send(request.session.basket);
 });
 
 router.route('/basket').get((request, response) => {
@@ -155,6 +181,7 @@ router.route('/order').post((request, response) => {
         if (error) {
             return response.status(500).send({error: 'INTERNAL_SERVER_ERROR', detail: 'Database error: ' + error});
         } 
+        request.session.basket = [];
         return response.status(200).send(request.body.order);
     });
 });
